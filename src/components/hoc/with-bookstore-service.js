@@ -1,7 +1,7 @@
 import React from 'react';
 import { BookstoreServiceConsumer } from '../bookstore-service-context';
 
-// возвращает ф-ию, которая принимает компонент, который ы будем оборачивать
+// возвращает ф-ию, которая принимает компонент, который мы будем оборачивать
 const withBookstoreService = () => (Wrapped) => {
     return (props) => {
         return (
