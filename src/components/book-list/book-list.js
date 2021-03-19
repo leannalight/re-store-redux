@@ -2,10 +2,12 @@ import React, { Component } from 'react';
 import BookListItem from '../book-list-item';
 import { connect } from 'react-redux';
 
-import { booksLoaded } from '../../actions';
 import { withBookstoreService } from '../hoc';
+import { booksLoaded, booksRequested, booksError } from '../../actions';
 import { compose } from '../../utils';
+
 import Spinner from '../spinner';
+import ErrorIndicator from '../error-indicator';
 import './book-list.css';
 
 // так как у BookList будет метод жизненного цикла
@@ -14,19 +16,30 @@ class BookList extends Component {
 
   componentDidMount() {
     // 1. receive data
-    const { bookstoreService, booksLoaded } = this.props;
+    const {
+      bookstoreService,
+      booksLoaded,
+      booksRequested,
+      booksError } = this.props;
+
+    booksRequested();
     bookstoreService.getBooks()
-      .then((data) => booksLoaded(data)); // если асинхронные данные
+      .then((data) => booksLoaded(data)) // если асинхронные данные
+      .catch((err) => booksError(err));
 
     //2. dispatch action to store
     // у нашего компонента появляется новое св-во
   }
 
   render() {
-    const { books, loading } = this.props;
+    const { books, loading, error } = this.props;
 
     if (loading) {
       <Spinner />
+    }
+
+    if (error) {
+      return <ErrorIndicator />;
     }
 
     return (
@@ -43,16 +56,16 @@ class BookList extends Component {
   }
 }
 
-const mapStateToProps = ({ books, loading }) => {
-  return { books, loading };
+const mapStateToProps = ({ books, loading, error }) => {
+  return { books, loading, error };
 };
 
-const mapDispatchToProps = (dispatch) => {
-  return {
-    booksLoaded: (newBooks) => {
-      dispatch(booksLoaded(newBooks));
-    }
-  };
+const mapDispatchToProps = {
+  /*  booksLoaded: (newBooks) => {
+      dispatch(booksLoaded(newBooks));}*/
+      booksLoaded,
+      booksRequested,
+      booksError
 };
 
 export default compose(
