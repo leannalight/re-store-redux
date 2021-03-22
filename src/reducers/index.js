@@ -40,19 +40,51 @@ const reducer = (state = initialState, action) => {
     case 'BOOK_ADDED_TO_CART':
       const bookId = action.payload;
       const book = state.books.find((book) => book.id === bookId );
-      const newItem = {
-        id: book.id,
-        name: book.title,
-        count: 1,
-        total: book.price
-      };
+      // для начала найдём индекс этого элемента в массиве
+      const itemIndex = state.cartItems.findIndex(({id}) => id === bookId);
+      // мы ищем индекс элемента, у которого id точно такое же, как id
+      // книги, с которой мы сейчас работаем. И этот itemIndex может быть либо индекс
+      // элемента, либо -1 - если такого элемента не существует. Нам понадобится этот индекс,
+      // чтобы знать какой элемент обновлять. Так же мы можем получить сам элемент
+      const item = state.cartItems[itemIndex];
 
-      return {
-        ...state, // возвращаем state, у которого будут все теже элементы, что и у старого state
-        cartItems: [ // кроме элемента cartItems, который будет новым массивом,
-          ...state.cartItems, // у которого будут всё теже элементы, что и у state.cartItems
-          newItem // плюс новый элемент newItem
-        ]
+      // если у нас есть старый item, то мы создаём новый item на основании старого,
+      // увеличивая его счётчик на 1
+      let newItem;
+
+      if (item) {
+        newItem = {
+          ...item,
+          count: item.count + 1, // увеличиваем на 1 старое значение count
+          total: item.total + book.price
+        };
+      } else { // а если его нет, тогда новый item будет создаваться точно также как раньше
+        newItem = {
+          id: book.id,
+          title: book.title,
+          count: 1,
+          total: book.price
+        };
+      }
+      // если индекс элемента меньше 0 (-1), то мы добавляем
+      // наш элемент в конец массива
+      if (itemIndex < 0) {
+        return {
+          ...state, // возвращаем state, у которого будут все теже элементы, что и у старого state
+          cartItems: [ // кроме элемента cartItems, который будет новым массивом,
+            ...state.cartItems, // у которого будут всё теже элементы, что и у state.cartItems
+            newItem // плюс новый элемент newItem
+          ]
+        };
+      } else { // в противоположном случае, если у нас есть индекс (т.е. существующий эл-т)
+        return { // обновляем массив
+          ...state,
+          cartItems: [// разбиваем наш массив на 3 части:
+            ...state.cartItems.slice(0, itemIndex),// 1. все те эл-ты, которые идут до нашего индекса
+            newItem, // 2. затем вставляем элемент newItem
+            ...state.cartItems.slice(itemIndex + 1),// 3. все эл-ты, которые идут после индекса
+          ]
+        };
       }
 
       default:
